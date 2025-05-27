@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Compression Result{% endblock %}
+{% block content %}
+  <h1>Compression Complete</h1>
+  <ul class="list-group">
+    <li class="list-group-item">Original file: <strong>{{ orig }}</strong> ({{ orig_size }} bytes)</li>
+    <li class="list-group-item">Compressed file: <a href="{{ url_for('download_file', folder='compressed', filename=comp) }}">{{ comp }}</a> ({{ comp_size }} bytes)</li>
+    <li class="list-group-item">Compression ratio: {{ ratio }}</li>
+  </ul>
+  <a href="{{ url_for('index') }}" class="btn btn-link mt-3">Back</a>
+{% endblock %}

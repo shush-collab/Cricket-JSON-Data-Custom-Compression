@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Decompression Result{% endblock %}
+{% block content %}
+  <h1>Decompression Complete</h1>
+  <ul class="list-group">
+    <li class="list-group-item">Compressed file: <strong>{{ comp }}</strong> ({{ comp_size }} bytes)</li>
+    <li class="list-group-item">Decompressed JSON: <a href="{{ url_for('download_file', folder='decompressed', filename=decomp) }}">{{ decomp }}</a> ({{ decomp_size }} bytes)</li>
+  </ul>
+  <a href="{{ url_for('index') }}" class="btn btn-link mt-3">Back</a>
+{% endblock %}

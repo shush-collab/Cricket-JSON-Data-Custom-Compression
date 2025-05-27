@@ -1,5 +1,26 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
+{% block title %}Home - IPL Compressor{% endblock %}
 {% block content %}
-    <h1>Home stuff comes here.</h1> <br>
+  <h1>CRICKET JSON Compressor</h1>
+  <div class="row">
+    <div class="col-md-6">
+      <h3>Compress Delivery JSON</h3>
+      <form action="{{ url_for('compress_file') }}" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+          <input class="form-control" type="file" name="file" accept=".json" required>
+        </div>
+        <button class="btn btn-success" type="submit">Compress</button>
+      </form>
+    </div>
+    <div class="col-md-6">
+        <h3>Decompress Brotli-compressed</h3>
+        <form action="{{ url_for('decompress_file') }}" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <input class="form-control" type="file" name="file" accept=".br" required>
+          </div>
+          <button class="btn btn-success" type="submit">Decompress</button>
+        </form>
+      </div>    
+  </div>
 {% endblock %}
+  
