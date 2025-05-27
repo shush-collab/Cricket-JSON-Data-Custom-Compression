@@ -42,7 +42,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // 1) load JSON
     std::ifstream in(argv[1]);
     if (!in.is_open()) {
         std::cerr << "Error opening input file\n";
@@ -50,7 +49,6 @@ int main(int argc, char* argv[]) {
     }
     json j; in >> j;
 
-    // 2) extract all deliveries
     std::vector<const json*> deliveries;
     for (auto& inning : j["innings"]) {
         for (auto& over : inning["overs"]) {
@@ -60,14 +58,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // 3) compress
     std::vector<uint8_t> buf;
     buf.reserve(deliveries.size());
     for (auto dptr : deliveries) {
         buf.push_back(compress_ball(*dptr));
     }
 
-    // 4) write binary
     std::ofstream out(argv[2], std::ios::binary);
     if (!out.is_open()) {
         std::cerr << "Error opening output file\n";
