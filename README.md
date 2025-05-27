@@ -42,7 +42,7 @@ Python 3.10+ & venv
 🛠️ Setup Instructions
 
 # 1) Clone your repo
-git clone https://github.com/<YOUR_USERNAME>/Cricket-JSON-Data-Custom-Compression.git
+git clone https://github.com/shush-collab/Cricket-JSON-Data-Custom-Compression.git
 cd Cricket-JSON-Data-Custom-Compression
 
 # 2) Build the C++ tools
