@@ -1,4 +1,3 @@
-// decompress.cpp
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -38,7 +37,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // 1) read compressed file
     std::ifstream in(argv[1], std::ios::binary);
     if (!in.is_open()) {
         std::cerr << "Error opening input file\n";
@@ -48,7 +46,6 @@ int main(int argc, char* argv[]) {
                               std::istreambuf_iterator<char>());
     in.close();
 
-    // 2) decompress into minimal JSON array
     json out = json::array();
     for (uint8_t b : buf) {
         Ball ball = decompress_byte(b);
@@ -58,12 +55,11 @@ int main(int argc, char* argv[]) {
             d["extras"] = {{"type", ball.extras}, {"runs", 1}};
         }
         if (ball.wicket) {
-            d["wicket"] = json::object();  // placeholder
+            d["wicket"] = json::object();
         }
         out.push_back(d);
     }
 
-    // 3) write JSON
     std::ofstream o(argv[2]);
     if (!o.is_open()) {
         std::cerr << "Error opening output file\n";
