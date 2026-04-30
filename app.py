@@ -9,7 +9,7 @@ app.config['SECRET_KEY'] = 'MY SECRET KEY'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['COMPRESSED_FOLDER'] = 'compressed'
 app.config['DECOMPRESSED_FOLDER'] = 'decompressed'
-ALLOWED_EXTENSIONS = {'json', 'bin', 'br'}
+ALLOWED_EXTENSIONS = {'json', 'cjdc'}
 
 # Ensure folders exist
 for folder in (app.config['UPLOAD_FOLDER'], app.config['COMPRESSED_FOLDER'], app.config['DECOMPRESSED_FOLDER']):
@@ -33,79 +33,49 @@ def compress_file():
     in_path = os.path.join(app.config['UPLOAD_FOLDER'], fname)
     file.save(in_path)
 
-    # 1) run C++ compressor -> .bin in COMPRESSED_FOLDER
     base = fname.rsplit('.',1)[0]
-    bin_name = f"{base}.bin"
-    bin_path = os.path.join(app.config['COMPRESSED_FOLDER'], bin_name)
-    result = subprocess.run(['./compress', in_path, bin_path], capture_output=True)
+    comp_name = f"{base}.cjdc"
+    comp_path = os.path.join(app.config['COMPRESSED_FOLDER'], comp_name)
+    result = subprocess.run(['./compress', in_path, comp_path], capture_output=True)
     if result.returncode != 0:
         flash('Compression failed: ' + result.stderr.decode())
         return redirect(url_for('index'))
 
-    # 2) run Brotli on the binary -> .br in COMPRESSED_FOLDER
-    br_name = f"{bin_name}.br"
-    br_path = os.path.join(app.config['COMPRESSED_FOLDER'], br_name)
-    # use -o to specify output, avoid default overwrite behavior
-    result = subprocess.run(['brotli', '-f', '-o', br_path, bin_path], capture_output=True)
-    if result.returncode != 0:
-        flash('Brotli compression failed: ' + result.stderr.decode())
-        return redirect(url_for('index'))
-
-    # Remove intermediate .bin
-    try:
-        os.remove(bin_path)
-    except OSError:
-        pass
-
-    # Compute sizes
     orig_size = os.path.getsize(in_path)
-    br_size = os.path.getsize(br_path)
-    ratio = f"{br_size}/{orig_size} ({br_size/orig_size:.2%})"
+    comp_size = os.path.getsize(comp_path)
+    ratio = f"{comp_size}/{orig_size} ({comp_size/orig_size:.2%})"
 
-    return render_template('compress.html', orig=fname, comp=br_name,
-                           orig_size=orig_size, comp_size=br_size, ratio=ratio)
+    return render_template('compress.html', orig=fname, comp=comp_name,
+                           orig_size=orig_size, comp_size=comp_size, ratio=ratio)
 
 @app.route('/decompress', methods=['POST'])
 def decompress_file():
     file = request.files.get('file')
-    if not file or not allowed_file(file.filename, {'br'}):
-        flash('Please upload a valid Brotli-compressed file (.br)')
+    if not file or not allowed_file(file.filename, {'cjdc'}):
+        flash('Please upload a valid CJDC file (.cjdc)')
         return redirect(url_for('index'))
     fname = secure_filename(file.filename)
-    # Save to COMPRESSED_FOLDER to handle decompression
-    br_path = os.path.join(app.config['COMPRESSED_FOLDER'], fname)
-    file.save(br_path)
+    comp_path = os.path.join(app.config['COMPRESSED_FOLDER'], fname)
+    file.save(comp_path)
+    comp_size = os.path.getsize(comp_path)
 
-    # 1) Brotli decompress -> .bin in DECOMPRESSED_FOLDER intermediate
     base = fname.rsplit('.',1)[0]
-    bin_name = f"{base}.bin"
-    bin_path = os.path.join(app.config['DECOMPRESSED_FOLDER'], bin_name)
-    result = subprocess.run(['brotli', '-d', '-f', '-o', bin_path, br_path], capture_output=True)
-    if result.returncode != 0:
-        flash('Brotli decompression failed: ' + result.stderr.decode())
-        return redirect(url_for('index'))
-
-    # 2) run C++ decompress -> JSON in DECOMPRESSED_FOLDER
     decomp_name = f"{base}_decompressed.json"
     out_path = os.path.join(app.config['DECOMPRESSED_FOLDER'], decomp_name)
-    result = subprocess.run(['./decompress', bin_path, out_path], capture_output=True)
+    result = subprocess.run(['./decompress', comp_path, out_path], capture_output=True)
     if result.returncode != 0:
         flash('Decompression failed: ' + result.stderr.decode())
         return redirect(url_for('index'))
 
-    # Cleanup intermediates
     try:
-        os.remove(br_path)
-        os.remove(bin_path)
+        os.remove(comp_path)
     except OSError:
         pass
 
-    # Compute sizes
-    br_size = os.path.getsize(br_path) if os.path.exists(br_path) else 0
     decomp_size = os.path.getsize(out_path)
 
     return render_template('decompress.html', comp=fname, decomp=decomp_name,
-                           comp_size=br_size, decomp_size=decomp_size)
+                           comp_size=comp_size, decomp_size=decomp_size)
 
 @app.route('/downloads/<folder>/<filename>')
 def download_file(folder, filename):

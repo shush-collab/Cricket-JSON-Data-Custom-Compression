@@ -1,0 +1,28 @@
+# Build outputs
+/compress
+/decompress
+/build/
+
+# Codec outputs
+*.cjdc
+*.br
+/compressed/*
+/decompressed/*
+!/compressed/.gitkeep
+!/decompressed/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+/venv/
+/.venv/
+
+# Local/editor files
+.codex
+.DS_Store
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.log
